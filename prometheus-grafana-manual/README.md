@@ -179,6 +179,7 @@ Rule added (v6)
 ![alt text](Node-Exporter-Web.png)
 
 - Click the Metrics link and confirm the statistics are being collected.
+---
 
 # 3. Configure Prometheus to Monitor Node
 
@@ -204,6 +205,9 @@ sudo systemctl restart prometheus
 
 ![alt text](Prometheus-Localhost-Target2.png)
 
+---
 
 
 
+
+![alt text](Prometheus-Dashboard.png)
