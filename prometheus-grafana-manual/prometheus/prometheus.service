@@ -18,8 +18,5 @@ ExecStart=/usr/local/bin/prometheus \
     --web.enable-lifecycle \
     --log.level=info
 
-# edit ip and port above accorodingly
-
-
 [Install]
 WantedBy=multi-user.target
