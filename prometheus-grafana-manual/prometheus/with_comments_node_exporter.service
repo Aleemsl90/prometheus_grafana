@@ -1,0 +1,24 @@
+# The Wants and After options must be set to network-online.target
+# -----------------------------------------------------------------
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+# -----------------------------------------------------------------
+# The User and Group fields must both be set to `node_exporter`
+# The Restart fileds should be kept default
+# Under ExecStart parameter, path to the node_exporter executable and options
+# web.listen-address is set to port 9090.
+# -----------------------------------------------------------------
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/node_exporter --web.listen-address=:9101
+
+# -----------------------------------------------------------------
+[Install]
+WantedBy=multi-user.target

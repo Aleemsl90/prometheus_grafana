@@ -1,0 +1,35 @@
+# The Wants and After options must be set to network-online.target
+# -----------------------------------------------------------------
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+# -----------------------------------------------------------------
+# The User and Group fields must both be set to prometheus
+# The Restart fileds should be kept default
+# Under ExecStart parameter, path to the prometheus executable and options
+# The config.file option points to the Prometheus configuration yml
+# storage.tsdb.path points to dir where Prometheus stores application data
+# web.listen-address is set to 0.0.0.0:9090, allowing Prometheus to listen for connections on all network interfaces.
+# Set web.listen-address and port for custom config
+# The web.enable-lifecycle option allows users to reload the configuration file without restarting Prometheus.
+# -----------------------------------------------------------------
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/prometheus \
+    --config.file /etc/prometheus/prometheus.yml \
+    --storage.tsdb.path /var/lib/prometheus/ \
+    --web.console.templates=/etc/prometheus/consoles \
+    --web.console.libraries=/etc/prometheus/console_libraries \
+    --web.listen-address=0.0.0.0:9090 \
+    --web.enable-lifecycle \
+    --log.level=info
+
+# -----------------------------------------------------------------
+[Install]
+WantedBy=multi-user.target
