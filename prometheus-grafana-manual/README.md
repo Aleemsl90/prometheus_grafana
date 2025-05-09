@@ -108,7 +108,7 @@ Rule added (v6)
 - Select `Status` -> `Targets`
 - Configuration in `prometheus.yml` is reflected here
 
-![alt text](Prometheus-Localhost-Target.png)
+![alt text](src/Prometheus-Localhost-Target.png)
 ---
 
 
@@ -176,7 +176,7 @@ Rule added (v6)
 - Access the Prometheus web interface and dashboard at `http://localhost:9101`. 
 - Replace `localhost` with the address and port of the monitoring server.
 
-![alt text](Node-Exporter-Web.png)
+![alt text](src/Node-Exporter-Web.png)
 
 - Click the Metrics link and confirm the statistics are being collected.
 ---
@@ -203,11 +203,22 @@ sudo systemctl restart prometheus
 - Select `Status`, then `Targets`
 - A second link for the `node_exporter` job is displayed, leading to port 9101.
 
-![alt text](Prometheus-Localhost-Target2.png)
+![alt text](src/Prometheus-Localhost-Target2.png)
 
+---
+- PromQL queries for `CPU Utilization %` for node_exporter is as follows
+```sql
+100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)
+```
+
+![alt text](src/Prometheus-Localhost-query.png)
+---
+- PromQL queries for `Memory Utilization %` for node_exporter is as follows
+```sql
+(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)/node_memory_MemTotal_bytes * 100
+```
+![alt text](src/Prometheus-Localhost-query1.png)
 ---
 
 
-
-
-![alt text](Prometheus-Dashboard.png)
+![alt text](src/Prometheus-Dashboard.png)
