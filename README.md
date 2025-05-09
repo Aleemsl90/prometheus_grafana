@@ -7,7 +7,6 @@ This project provides a manual setup guide for deploying:
 - **Node Exporter** (Linux/BSD Infrastructure Metrics Collection)
 - **Grafana** (visualization Dashboard + alertrules + notification) 
 
-
 ## Key Features
 ```
 ✅ Comprehensive Monitoring: Track CPU, memory, disk, network, and service health
