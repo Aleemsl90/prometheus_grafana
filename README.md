@@ -1,5 +1,27 @@
-# Prometheus + Grafana Monitoring Stack  
+# Prometheus & Grafana | Real-Time Infrastructure Monitoring
 
+A production-ready, open-source stack for monitoring system metrics, application performance, and alerting.
+
+This project provides a manual setup guide for deploying:
+- **Prometheus** (metrics collection)  
+- **Node Exporter** (Linux/BSD Infrastructure Metrics Collection)
+- **Grafana** (visualization Dashboard + alertrules + notification) 
+
+
+## Key Features
+```
+✅ Comprehensive Monitoring: Track CPU, memory, disk, network, and service health
+✅ Alerting: Configure thresholds with Prometheus Alertmanager or Grafana alerts
+✅ Pre-built Dashboards: Import industry-standard dashboards (e.g., Node Exporter Full)
+✅ Bare-Metal/KVM Ready: Designed for physical servers and VMs (non-containerized)
+```
+
+## Use Cases
+- Infrastructure Health: Monitor servers, databases, and APIs
+- Capacity Planning: Identify resource bottlenecks
+- Incident Response: Get alerted on anomalies (high CPU, disk full, etc.)
+
+## Introduction
 
 Prometheus is a system monitoring application that polls client systems for key metrics. Each client node must use an exporter to collect and expose the requested data. Prometheus is most effective when used together with the Grafana visualization tool. Grafana imports the metrics from Prometheus and presents them using an intuitive dashboard structure.
 
