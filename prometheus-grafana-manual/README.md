@@ -1,7 +1,16 @@
+# Installation guide: Prometheus, Node Exporter & Grafana
+
+1. Install and Configure Prometheus
+2. Install and Configure Node Exporter
+3. Configure Prometheus to Monitor Node
+4. Install and Configure Grafana
+5. Integrate Grafana and Prometheus
+6. Setting up alerts
+---
+
 # 1. Install and Configure Prometheus
 These instructions were tested on **Ubuntu Server 24.04 LTS**. For other operating systems, consult the relevant documentation.
 
----
 ### Step 1: Check for latest version on website
 Visit the Prometheus downloads on their [website](https://prometheus.io/download/) and make a note of the most recent release.
 
@@ -101,7 +110,7 @@ Rule added (v6)
 - Access the Prometheus web interface and dashboard at `http://localhost:9090`. 
 - Replace `localhost` with the address and port of the monitoring server.
 
-![alt text](Prometheus-Dashboard-Empty.png)
+![alt text](src/Prometheus-Dashboard-Empty.png)
 
 ---
 ### Step 6: Explore targets:
@@ -183,10 +192,13 @@ Rule added (v6)
 
 # 3. Configure Prometheus to Monitor Node
 
+### Step 1: Edit Prometheus Configuration
 - On the monitoring server running Prometheus, edit `prometheus.yml`
 ```bash
 $ sudo vi /etc/prometheus/prometheus.yml
 ```
+
+### Step 2: Add Node Exporter Job
 - Locate the section entitled `scrape_configs` and add new job
 
 ```yml
@@ -194,31 +206,169 @@ $ sudo vi /etc/prometheus/prometheus.yml
   static_configs:
     - targets: ["localhost:9101"]
 ```
-
+### Step 3: Reload Prometheus
 To immediately refresh Prometheus, restart the prometheus service.
 ```bash
-sudo systemctl restart prometheus
+$ sudo systemctl restart prometheus
 ```
-- Refresh the Prometheus web portal.
-- Select `Status`, then `Targets`
-- A second link for the `node_exporter` job is displayed, leading to port 9101.
+
+### Step 4: Verify Target Status
+- Access Prometheus web UI at http://localhost:9090
+- Navigate to `Status` -> `Targets`
+- Confirm `node_exporter` target is UP at port 9101. A second link for the  job is displayed.
 
 ![alt text](src/Prometheus-Localhost-Target2.png)
-
 ---
-- PromQL queries for `CPU Utilization %` for node_exporter is as follows
+
+## Key PromQL Queries
+### CPU Utilization (%)
 ```sql
 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)
 ```
 
 ![alt text](src/Prometheus-Localhost-query.png)
 ---
-- PromQL queries for `Memory Utilization %` for node_exporter is as follows
+### Memory Utilization (%)
 ```sql
 (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)/node_memory_MemTotal_bytes * 100
 ```
 ![alt text](src/Prometheus-Localhost-query1.png)
 ---
 
+# 4. Install and Configure Grafana
 
+### Step 1: Install the prerequisite packages
+- Install some required utilities using apt
+```bash
+$ sudo apt-get install -y apt-transport-https software-properties-common wget
+```
+- Import the GPG key:
+```bash
+$ sudo mkdir -p /etc/apt/keyrings/
+$ wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+```
+- To add a repository for stable releases, run the following command:
+```bash
+$ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+```
+- Run the following command to update the list of available packages:
+```bash
+$ sudo apt-get update
+```
+- To install `Grafana` or `Grafana Enterprise` OSS, run the following command:
+```bash
+$ sudo apt-get install grafana
+$ sudo apt-get install grafana-enterprise
+```
+---
+### Step 2: Verify installation
+- Reload the `systemctl` daemon
+- Enable and start the Grafana server. Using `systemctl` enable configures the server to launch Grafana when the system boots
+- Verify the status of the Grafana server and ensure it is in the active state
+```bash
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable grafana-server.service
+$ sudo systemctl start grafana-server
+$ sudo systemctl status grafana-server
+---------------------------------------
+o grafana-server.service - Grafana instance
+    Loaded: loaded (/etc/systemd/system/grafana-server.service; enabled; vendor preset: enabled)
+    Active: active (running) since Mon 2025-05-04 10:28:41 UTC; 8s ago
+```
+
+- (Optional) If firewall exists between server and client. Allow port `3000` through your firewall
+```bash
+$ sudo ufw allow 3000
+---------------------------
+Output
+Rule added
+Rule added (v6)
+```
+---
+- Using a web browser, visit http://localhost:3000, replacing localhost with the server IP address. 
+- Grafana displays the login page. Use the user name `admin` and the default password `admin`.
+
+![alt text](src/Grafana-Login-Page.png)
+---
+
+# 5. Integrate Grafana and Prometheus
+
+### Step 1: Add Prometheus Data Source
+- Click Grafana Icon → `Connections` → `DataSources`
+- Add new Datasource → `Prometheus`
+- Enter Server URL : `http://localhost:9090`
+- Click `Save & Test` (verify "Data source is working" appears)
+---
+
+### Step 2: Import Node Exporter Dashboard
+- Click Dashboards 🧭 → `New` → `Import`
+- Enter dashboard ID: `1860` (Node Exporter Full) → Load
+- Select your Prometheus data source
+- Click "Import"
+---
 ![alt text](src/Prometheus-Dashboard.png)
+
+*The Node Exporter Full dashboard takes effect immediately. It displays the performance metrics and state of the client node, including the Memory, RAM, and CPU details. Several drop-down menus at the top of the screen allow users to select the host to observe and the time period to highlight.*
+
+# 6. Setting up alerts
+
+### Configure Alert Rule
+- Click Grafana Icon → `Alerts & IRM` → `Alerting` → `Alert rules` → `+ New alert rule`
+- Set alert name (e.g., "Severity Major: CPU Load above 80%")
+- Add PromQL query:
+    ```bash
+    sum by(instance)(irate(node_cpu_seconds_total{job="node_exporter",mode="idle"}[5m])) > 80
+    ```
+- Select or create an Alert folder (e.g., "Infrastructure Alerts")
+- Set Evaluation group (rules are evaluated together every 1 minute by default)
+
+### Test & Validate
+- Click "Run queries" to verify:
+  - Table view shows current metric values (e.g., 31.36779)
+- Set Alert condition:
+  - When query > threshold (value crosses your defined limit)
+  - States: Normal (green) / Firing (red)
+- Finalize:
+  - Add descriptive summary and annotations
+  - Click "Save rule"
+
+### Configure Notification
+- Under Alertmanager: Grafana
+- Contact point: `grafana-default-email`
+- For new contact point → `New contact point`
+  - Email (SMTP must be configured in grafana.ini)
+  - Slack (Webhook URL)
+  - PagerDuty (Integration Key)
+  - Webhook (Custom APIs)
+  - Microsoft Teams (Incoming Webhook)
+
+### PromQL Queries
+#### CPU load
+```sh
+# Severity Major: CPU Load above 80%
+sum by(instance)(irate(node_cpu_seconds_total{job="node_exporter",mode="idle"}[5m])) > 80
+
+# Severity Critical: CPU Load above 90%
+sum by(instance)(irate(node_cpu_seconds_total{job="node_exporter",mode="idle"}[5m])) > 90
+```
+#### Memory load
+```bash
+# Severity Major: Memory load above 80%
+(node_memory_MemAvailable_bytes * 100 / node_memory_MemTotal_bytes) > 80
+
+# Severity Critical: Memory load above 90%
+(node_memory_MemAvailable_bytes * 100 / node_memory_MemTotal_bytes) > 90
+```
+#### Disk space
+```bash
+# Severity Major: Disk Space is Lower than 20%
+(node_filesystem_avail_bytes{mountpoint="/"}*100) / node_filesystem_size_bytes{mountpoint="/"} < 20
+
+# Severity Major: Disk Space is Lower than 10%
+(node_filesystem_avail_bytes{mountpoint="/"}*100) / node_filesystem_size_bytes{mountpoint="/"} < 10
+```
+---
+### Example Alert Rule:
+
+![alt text](src/Grafana-Alert-Rule.png)
+---
