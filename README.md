@@ -39,3 +39,7 @@ prometheus-grafana-manual/
 4. Install and Configure Grafana
 5. Integrate Grafana and Prometheus
 6. Setting up alerts
+
+## Example Preview
+
+![alt](prometheus-grafana-manual/src/Prometheus-Dashboard.png)
